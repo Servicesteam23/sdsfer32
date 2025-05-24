@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Oceanic Online Banking</title>
+<style>
+  /* Reset & base */
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    margin: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #0052D4, #4364F7, #6FB1FC);
+    color: #fff;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+  }
+  #app {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 30px 40px;
+    border-radius: 15px;
+    width: 100%;
+    max-width: 460px;
+    box-shadow: 0 0 15px rgba(0,0,0,0.25);
+    backdrop-filter: blur(12px);
+  }
+  h1.bank-name {
+    text-align: center;
+    font-weight: 900;
+    letter-spacing: 3px;
+    font-size: 2rem;
+    margin-bottom: 6px;
+    color: #00d4ff;
+    text-shadow: 0 0 8px #00d4ff;
+  }
+  h2.bank-subtitle {
+    text-align: center;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    font-size: 1.1rem;
+    margin-top: 0;
+    margin-bottom: 30px;
+    color: #a0e4ff;
+    text-shadow: 0 0 5px #79d1ff;
+  }
+  h2 {
+    margin-bottom: 20px;
+    text-align: center;
+    font-weight: 700;
+    letter-spacing: 1px;
+  }
+  form {
+    display: flex;
+    flex-direction: column;
+  }
+  label {
+    font-size: 0.9rem;
+    margin-bottom: 5px;
+    margin-top: 15px;
+  }
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="number"] {
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: none;
+    font-size: 1rem;
+    outline: none;
+  }
+  input[type="text"]:focus,
+  input[type="email"]:focus,
+  input[type="password"]:focus,
+  input[type="number"]:focus {
+    box-shadow: 0 0 10px #2ac1f7;
+  }
+  button {
+    margin-top: 25px;
+    padding: 12px;
+    border: none;
+    border-radius: 10px;
+    background: #007bff;
+    color: white;
+    font-size: 1.1rem;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background 0.3s ease;
+  }
+  button:hover {
+    background: #0056b3;
+  }
+  .link-btn {
+    background: none;
+    color: #b3d7ff;
+    font-size: 0.9rem;
+    margin-top: 15px;
+    cursor: pointer;
+    border: none;
+    text-align: center;
+    text-decoration: underline;
+  }
+  .link-btn:hover {
+    color: #e0f0ff;
+  }
+  .error {
+    background: #ff4d4dcc;
+    color: white;
+    margin-top: 10px;
+    border-radius: 8px;
+    padding: 8px;
+    font-weight: 600;
+    text-align: center;
+  }
+  .success {
+    background: #27ae6011;
+    color: #27ae60;
+    margin-top: 10px;
+    border-radius: 8px;
+    padding: 8px;
+    font-weight: 600;
+    text-align: center;
+  }
+  #dashboard {
+    display: none;
+  }
+  #dashboard h3 {
+    margin-bottom: 10px;
+    text-align: center;
+  }
+  #account-info {
+    background: rgba(255,255,255,0.15);
+    border-radius: 12px;
+    padding: 20px;
+    font-size: 1rem;
+    line-height: 1.5;
+    margin-bottom: 20px;
+  }
+  #transactions-list {
+    list-style:none; 
+    padding-left:0;
+    max-height: 140px;
+    overflow-y: auto;
+    border-radius: 8px;
+    background: rgba(0,0,0,0.15);
+    padding: 10px;
+  }
+  #transactions-list li {
+    margin-bottom: 8px;
+    user-select: none;
+  }
+  #transactions-list li.negative {
+    color: #e74c3c;
+  }
+  #transactions-list li.positive {
+    color: #27ae60;
+  }
+  #logout-btn {
+    margin-top: 15px;
+    background: #e74c3c;
+  }
+  #logout-btn:hover {
+    background: #c0392b;
+  }
+  .tab-buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+  }
+  .tab-buttons button {
+    flex: 1;
+    margin: 0 5px;
+    font-size: 1rem;
+  }
+  .tab-content {
+    display: none;
+    margin-top: 20px;
+  }
+  .tab-content.active {
+    display: block;
+  }
+  .transaction-form label {
+    margin-top: 10px;
+  }
+  .transaction-form input[type="number"], .transaction-form select {
+    width: 100%;
+  }
+
+  @media (max-width:480px) {
+    #app {
+      max-width: 100%;
+      padding: 20px;
+    }
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <h1 class="bank-name">Oceanic</h1>
+  <h2 class="bank-subtitle">Online Banking</h2>
+
+  <!-- Sign Up Form -->
+  <div id="signup-form">
+    <h2>Create Account</h2>
+    <form id="form-signup" novalidate>
+      <label for="signup-username">Username</label>
+      <input type="text" id="signup-username" required autocomplete="username" />
+
+      <label for="signup-email">Email</label>
+      <input type="email" id="signup-email" required autocomplete="email" />
+
+      <label for="signup-password">Password</label>
+      <input type="password" id="signup-password" required autocomplete="new-password" minlength="6" />
+
+      <button type="submit">Sign Up</button>
+    </form>
+    <button class="link-btn" id="to-login">Already have an account? Log In</button>
+    <div id="signup-error" class="error" style="display:none;"></div>
+    <div id="signup-success" class="success" style="display:none;"></div>
+  </div>
+
+  <!-- Login Form -->
+  <div id="login-form" style="display:none;">
+    <h2>Log In</h2>
+    <form id="form-login" novalidate>
+      <label for="login-username">Username</label>
+      <input type="text" id="login-username" required autocomplete="username" />
+
+      <label for="login-password">Password</label>
+      <input type="password" id="login-password" required autocomplete="current-password" />
+
+      <button type="submit">Log In</button>
+    </form>
+    <button class="link-btn" id="to-signup">Don't have an account? Sign Up</button>
+    <div id="login-error" class="error" style="display:none;"></div>
+  </div>
+
+  <!-- Dashboard -->
+  <div id="dashboard">
+    <h2>Welcome, <span id="user-name"></span>!</h2>
+    <div id="account-info">
+      <p><strong>Account Number:</strong> <span id="account-number"></span></p>
+      <p><strong>Account Balance:</strong> $<span id="account-balance"></span></p>
+    </div>
+
+    <div class="tab-buttons">
+      <button id="tab-transactions-btn" aria-controls="transactions-tab" aria-selected="true">Transactions</button>
+      <button id="tab-deposit-btn" aria-controls="deposit-tab" aria-selected="false">Deposit</button>
+      <button id="tab-withdraw-btn" aria-controls="withdraw-tab" aria-selected="false">Withdraw</button>
+      <button id="tab-transfer-btn" aria-controls="transfer-tab" aria-selected="false">Transfer</button>
+    </div>
+
+    <div id="transactions-tab" class="tab-content active" role="tabpanel" tabindex="0" aria-labelledby="tab-transactions-btn">
+      <h3>Recent Transactions</h3>
+      <ul id="transactions-list"></ul>
+    </div>
+
+    <div id="deposit-tab" class="tab-content" role="tabpanel" tabindex="0" aria-labelledby="tab-deposit-btn">
+      <h3>Deposit Funds</h3>
+      <form id="form-deposit" class="transaction-form" novalidate>
+        <label for="deposit-amount">Amount ($)</label>
+        <input type="number" id="deposit-amount" min="1" step="0.01" required />
+        <button type="submit">Deposit</button>
+      </form>
+      <div id="deposit-message" class="error" style="display:none;"></div>
+    </div>
+
+    <div id="withdraw-tab" class="tab-content" role="tabpanel" tabindex="0" aria-labelledby="tab-withdraw-btn">
+      <h3>Withdraw Funds</h3>
+      <form id="form-withdraw" class="transaction-form" novalidate>
+        <label for="withdraw-amount">Amount ($)</label>
+        <input type="number" id="withdraw-amount" min="1" step="0.01" required />
+        <button type="submit">Withdraw</button>
+      </form>
+      <div id="withdraw-message" class="error" style="display:none;"></div>
+    </div>
+
+    <div id="transfer-tab" class="tab-content" role="tabpanel" tabindex="0" aria-labelledby="tab-transfer-btn">
+      <h3>Transfer Funds</h3>
+      <form id="form-transfer" class="transaction-form" novalidate>
+        <label for="transfer-to">Recipient Username</label>
+        <input type="text" id="transfer-to" required />
+        <label for="transfer-amount">Amount ($)</label>
+        <input type="number" id="transfer-amount" min="1" step="0.01" required />
+        <button type="submit">Transfer</button>
+      </form>
+      <div id="transfer-message" class="error" style="display:none;"></div>
+    </div>
+
+    <button id="logout-btn">Log Out</button>
+  </div>
+</div>
+
+<script>
+  // Utility sha256 hash for password hashing
+  async function sha256(message) {
+    const msgBuffer = new TextEncoder().encode(message);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const hashHex = hashArray.map(b => b.toString(16).padStart(2,'0')).join('');
+    return hashHex;
+  }
+
+  // DOM elements
+  const signupFormDiv = document.getElementById('signup-form');
+  const loginFormDiv = document.getElementById('login-form');
+  const dashboardDiv = document.getElementById('dashboard');
+
+  const toLoginBtn = document.getElementById('to-login');
+  const toSignupBtn = document.getElementById('to-signup');
+
+  // Signup form elements
+  const formSignup = document.getElementById('form-signup');
+  const inputSignupUsername = document.getElementById('signup-username');
+  const inputSignupEmail = document.getElementById('signup-email');
+  const inputSignupPassword = document.getElementById('signup-password');
+  const signupError = document.getElementById('signup-error');
+  const signupSuccess = document.getElementById('signup-success');
+
+  // Login form elements
+  const formLogin = document.getElementById('form-login');
+  const inputLoginUsername = document.getElementById('login-username');
+  const inputLoginPassword = document.getElementById('login-password');
+  const loginError = document.getElementById('login-error');
+
+  // Dashboard elements
+  const userNameSpan = document.getElementById('user-name');
+  const accountNumberSpan = document.getElementById('account-number');
+  const accountBalanceSpan = document.getElementById('account-balance');
+  const transactionsList = document.getElementById('transactions-list');
+  const logoutBtn = document.getElementById('logout-btn');
+
+  // Tabs
+  const tabButtons = {
+    transactions: document.getElementById('tab-transactions-btn'),
+    deposit: document.getElementById('tab-deposit-btn'),
+    withdraw: document.getElementById('tab-withdraw-btn'),
+    transfer: document.getElementById('tab-transfer-btn')
+  };
+  const tabContents = {
+    transactions: document.getElementById('transactions-tab'),
+    deposit: document.getElementById('deposit-tab'),
+    withdraw: document.getElementById('withdraw-tab'),
+    transfer: document.getElementById('transfer-tab')
+  };
+
+  // Transaction forms and messages
+  const formDeposit = document.getElementById('form-deposit');
+  const depositAmountInput = document.getElementById('deposit-amount');
+  const depositMessage = document.getElementById('deposit-message');
+
+  const formWithdraw = document.getElementById('form-withdraw');
+  const withdrawAmountInput = document.getElementById('withdraw-amount');
+  const withdrawMessage = document.getElementById('withdraw-message');
+
+  const formTransfer = document.getElementById('form-transfer');
+  const transferToInput = document.getElementById('transfer-to');
+  const transferAmountInput = document.getElementById('transfer-amount');
+  const transferMessage = document.getElementById('transfer-message');
+
+  // Disable text selection on some parts
+  transactionsList.style.userSelect = 'none';
+
+  // Switch between forms
+  toLoginBtn.addEventListener('click', () => {
+    signupFormDiv.style.display = 'none';
+    loginFormDiv.style.display = 'block';
+    signupError.style.display = 'none';
+    signupSuccess.style.display = 'none';
+  });
+  toSignupBtn.addEventListener('click', () => {
+    loginFormDiv.style.display = 'none';
+    signupFormDiv.style.display = 'block';
+    loginError.style.display = 'none';
+  });
+
+  // Storage keys
+  const USERS_KEY = 'bankUsers';
+  const SESSION_KEY = 'bankSession';
+
+  // Load users from localStorage
+  function loadUsers() {
+    const usersJSON = localStorage.getItem(USERS_KEY);
+    return usersJSON ? JSON.parse(usersJSON) : {};
+  }
+
+  // Save users to localStorage
+  function saveUsers(users) {
+    localStorage.setItem(USERS_KEY, JSON.stringify(users));
+  }
+
+  // Generate random account number
+  function generateAccountNumber() {
+    return 'ACCT-' + Math.floor(100000000 + Math.random()*900000000);
+  }
+
+  // Calculate balance from transactions
+  function calculateBalance(transactions) {
+    return transactions.reduce((acc, t) => acc + t.amount, 0).toFixed(2);
+  }
+
+  // Save session
+  function saveSession(username) {
+    localStorage.setItem(SESSION_KEY, username);
+  }
+
+  // Clear session
+  function clearSession() {
+    localStorage.removeItem(SESSION_KEY);
+  }
+
+  // Get current session user
+  function getSessionUser() {
+    return localStorage.getItem(SESSION_KEY);
+  }
+
+  // Display dashboard info
+  function showDashboard(username) {
+    const users = loadUsers();
+    const userData = users[username];
+
+    userNameSpan.textContent = userData.username;
+    accountNumberSpan.textContent = userData.accountNumber;
+    accountBalanceSpan.textContent = calculateBalance(userData.transactions);
+
+    // Clear transactions list
+    transactionsList.innerHTML = '';
+    if(userData.transactions.length === 0) {
+      const li = document.createElement('li');
+      li.textContent = 'No transactions yet.';
+      transactionsList.appendChild(li);
+    } else {
+      userData.transactions.slice().reverse().forEach(tx => {
+        const li = document.createElement('li');
+        li.textContent = `${tx.date} - ${tx.description}: $${tx.amount.toFixed(2)}`;
+        li.className = tx.amount < 0 ? 'negative' : 'positive';
+        transactionsList.appendChild(li);
+      });
+    }
+
+    signupFormDiv.style.display = 'none';
+    loginFormDiv.style.display = 'none';
+    dashboardDiv.style.display = 'block';
+
+    // Reset tabs to default (transactions)
+    activateTab('transactions');
+  }
+
+  // Activate tab function
+  function activateTab(tab) {
+    Object.keys(tabButtons).forEach(t => {
+      if(t === tab) {
+        tabButtons[t].setAttribute('aria-selected', 'true');
+        tabContents[t].classList.add('active');
+        tabContents[t].focus();
+      } else {
+        tabButtons[t].setAttribute('aria-selected', 'false');
+        tabContents[t].classList.remove('active');
+      }
+    });
+
+    // Clear form messages
+    depositMessage.style.display = 'none';
+    withdrawMessage.style.display = 'none';
+    transferMessage.style.display = 'none';
+
+    // Clear forms inputs
+    formDeposit.reset();
+    formWithdraw.reset();
+    formTransfer.reset();
+  }
+
+  Object.entries(tabButtons).forEach(([key, btn]) => {
+    btn.addEventListener('click', () => {
+      activateTab(key);
+    });
+  });
+
+  // On signup form submit
+  formSignup.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    signupError.style.display = 'none';
+    signupSuccess.style.display = 'none';
+
+    let username = inputSignupUsername.value.trim();
+    let email = inputSignupEmail.value.trim();
+    let password = inputSignupPassword.value;
+
+    // Basic validation
+    if(username.length < 3) {
+      signupError.textContent = 'Username must be at least 3 characters.';
+      signupError.style.display = 'block';
+      return;
+    }
+    if(!email.includes('@') || email.length < 5) {
+      signupError.textContent = 'Please enter a valid email address.';
+      signupError.style.display = 'block';
+      return;
+    }
+    if(password.length < 6) {
+      signupError.textContent = 'Password must be at least 6 characters.';
+      signupError.style.display = 'block';
+      return;
+    }
+
+    let users = loadUsers();
+    if(users[username]) {
+      signupError.textContent = 'Username already exists. Please choose another.';
+      signupError.style.display = 'block';
+      return;
+    }
+    for(let user in users) {
+      if(users[user].email.toLowerCase() === email.toLowerCase()) {
+        signupError.textContent = 'Email already registered. Please use another.';
+        signupError.style.display = 'block';
+        return;
+      }
+    }
+    // Hash password
+    try {
+      const hashedPass = await sha256(password);
+
+      // Create new user with empty transactions
+      users[username] = {
+        username,
+        email,
+        passwordHash: hashedPass,
+        accountNumber: generateAccountNumber(),
+        transactions: []
+      };
+      saveUsers(users);
+
+      signupSuccess.textContent = 'Account created! You can now log in.';
+      signupSuccess.style.display = 'block';
+      formSignup.reset();
+    } catch (err) {
+      signupError.textContent = 'Error occurred during sign up. Please try again.';
+      signupError.style.display = 'block';
+    }
+  });
+
+  // On login form submit
+  formLogin.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    loginError.style.display = 'none';
+
+    let username = inputLoginUsername.value.trim();
+    let password = inputLoginPassword.value;
+
+    let users = loadUsers();
+    let userData = users[username];
+    if(!userData) {
+      loginError.textContent = 'Invalid username or password.';
+      loginError.style.display = 'block';
+      return;
+    }
+    try {
+      const hashedPass = await sha256(password);
+      if(hashedPass !== userData.passwordHash) {
+        loginError.textContent = 'Invalid username or password.';
+        loginError.style.display = 'block';
+        return;
+      }
+    } catch (err) {
+      loginError.textContent = 'Error occurred during login. Please try again.';
+      loginError.style.display = 'block';
+      return;
+    }
+
+    // Save session
+    saveSession(username);
+    showDashboard(username);
+    formLogin.reset();
+  });
+
+  // Logout button
+  logoutBtn.addEventListener('click', () => {
+    clearSession();
+    dashboardDiv.style.display = 'none';
+    loginFormDiv.style.display = 'block';
+    loginError.style.display = 'none';
+  });
+
+  // Deposit form submit
+  formDeposit.addEventListener('submit', (e) => {
+    e.preventDefault();
+    depositMessage.style.display = 'none';
+    const amount = parseFloat(depositAmountInput.value);
+    if(isNaN(amount) || amount <= 0) {
+      depositMessage.textContent = 'Please enter a valid amount greater than zero.';
+      depositMessage.style.display = 'block';
+      depositMessage.style.color = '#ff4d4dcc';
+      depositMessage.style.backgroundColor = '#ff4d4d33';
+      return;
+    }
+    let currentUser = getSessionUser();
+    let users = loadUsers();
+    let userData = users[currentUser];
+
+    userData.transactions.push({
+      date: new Date().toISOString().slice(0,10),
+      description: 'Deposit',
+      amount
+    });
+    saveUsers(users);
+    depositMessage.textContent = `Successfully deposited $${amount.toFixed(2)}.`;
+    depositMessage.style.color = '#27ae60';
+    depositMessage.style.backgroundColor = '#27ae6011';
+    depositMessage.style.display = 'block';
+    depositAmountInput.value = '';
+    showDashboard(currentUser);
+  });
+
+  // Withdraw form submit
+  formWithdraw.addEventListener('submit', (e) => {
+    e.preventDefault();
+    withdrawMessage.style.display = 'none';
+    const amount = parseFloat(withdrawAmountInput.value);
+    if(isNaN(amount) || amount <= 0) {
+      withdrawMessage.textContent = 'Please enter a valid amount greater than zero.';
+      withdrawMessage.style.display = 'block';
+      withdrawMessage.style.color = '#ff4d4dcc';
+      withdrawMessage.style.backgroundColor = '#ff4d4d33';
+      return;
+    }
+    let currentUser = getSessionUser();
+    let users = loadUsers();
+    let userData = users[currentUser];
+    let balance = parseFloat(calculateBalance(userData.transactions));
+
+    if(amount > balance) {
+      withdrawMessage.textContent = 'Insufficient funds for this withdrawal.';
+      withdrawMessage.style.display = 'block';
+      withdrawMessage.style.color = '#ff4d4dcc';
+      withdrawMessage.style.backgroundColor = '#ff4d4d33';
+      return;
+    }
+    userData.transactions.push({
+      date: new Date().toISOString().slice(0,10),
+      description: 'Withdrawal',
+      amount: -amount
+    });
+    saveUsers(users);
+    withdrawMessage.textContent = `Successfully withdrew $${amount.toFixed(2)}.`;
+    withdrawMessage.style.color = '#27ae60';
+    withdrawMessage.style.backgroundColor = '#27ae6011';
+    withdrawMessage.style.display = 'block';
+    withdrawAmountInput.value = '';
+    showDashboard(currentUser);
+  });
+
+  // Transfer form submit
+  formTransfer.addEventListener('submit', (e) => {
+    e.preventDefault();
+    transferMessage.style.display = 'none';
+    const recipient = transferToInput.value.trim();
+    const amount = parseFloat(transferAmountInput.value);
+
+    if(!recipient) {
+      transferMessage.textContent = 'Please enter a recipient username.';
+      transferMessage.style.display = 'block';
+      transferMessage.style.color = '#ff4d4dcc';
+      transferMessage.style.backgroundColor = '#ff4d4d33';
+      return;
+    }
+    if(isNaN(amount) || amount <= 0) {
+      transferMessage.textContent = 'Please enter a valid amount greater than zero.';
+      transferMessage.style.display = 'block';
+      transferMessage.style.color = '#ff4d4dcc';
+      transferMessage.style.backgroundColor = '#ff4d4d33';
+      return;
+    }
+    let currentUser = getSessionUser();
+    if(recipient === currentUser) {
+      transferMessage.textContent = 'You cannot transfer funds to yourself.';
+      transferMessage.style.display = 'block';
+      transferMessage.style.color = '#ff4d4dcc';
+      transferMessage.style.backgroundColor = '#ff4d4d33';
+      return;
+    }
+    let users = loadUsers();
+    let senderData = users[currentUser];
+    let recipientData = users[recipient];
+
+    if(!recipientData) {
+      transferMessage.textContent = 'Recipient user does not exist.';
+      transferMessage.style.display = 'block';
+      transferMessage.style.color = '#ff4d4dcc';
+      transferMessage.style.backgroundColor = '#ff4d4d33';
+      return;
+    }
+    let balance = parseFloat(calculateBalance(senderData.transactions));
+    if(amount > balance) {
+      transferMessage.textContent = 'Insufficient funds for this transfer.';
+      transferMessage.style.display = 'block';
+      transferMessage.style.color = '#ff4d4dcc';
+      transferMessage.style.backgroundColor = '#ff4d4d33';
+      return;
+    }
+
+    // Deduct from sender
+    senderData.transactions.push({
+      date: new Date().toISOString().slice(0,10),
+      description: `Transfer to ${recipient}`,
+      amount: -amount
+    });
+    // Credit to recipient
+    recipientData.transactions.push({
+      date: new Date().toISOString().slice(0,10),
+      description: `Transfer from ${currentUser}`,
+      amount: amount
+    });
+
+    saveUsers(users);
+    transferMessage.textContent = `Successfully transferred $${amount.toFixed(2)} to ${recipient}.`;
+    transferMessage.style.color = '#27ae60';
+    transferMessage.style.backgroundColor = '#27ae6011';
+    transferMessage.style.display = 'block';
+
+    formTransfer.reset();
+    showDashboard(currentUser);
+  });
+
+  // On page load check session
+  window.addEventListener('load', () => {
+    let sessionUser = getSessionUser();
+    if(sessionUser) {
+      showDashboard(sessionUser);
+    } else {
+      signupFormDiv.style.display = 'block';
+      loginFormDiv.style.display = 'none';
+      dashboardDiv.style.display = 'none';
+    }
+  });
+
+  // Accessibility: make tabs keyboard navigable
+  Object.values(tabButtons).forEach(btn => {
+    btn.addEventListener('keydown', (e) => {
+      if(e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+        e.preventDefault();
+        const keys = Object.keys(tabButtons);
+        let idx = keys.indexOf(Object.entries(tabButtons).find(e => e[1] === btn)[0]);
+        if(e.key === 'ArrowRight') idx = (idx + 1) % keys.length;
+        else idx = (idx - 1 + keys.length) % keys.length;
+        activateTab(keys[idx]);
+        tabButtons[keys[idx]].focus();
+      }
+    });
+  });
+</script>
+</body>
+</html>
+
